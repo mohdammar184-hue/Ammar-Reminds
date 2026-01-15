@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ammar Reminds</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: system-ui; background:#f4f7f5; margin:0; }
+header { background:#0f766e;color:white;padding:16px;text-align:center;font-size:22px;font-weight:bold;}
+.container{padding:14px;}
+.card{background:white;padding:14px;border-radius:16px;margin:12px 0;box-shadow:0 2px 6px rgba(0,0,0,.1);}
+input,select,button{width:100%;padding:10px;margin:6px 0;border-radius:10px;border:1px solid #ddd;}
+.arabic{font-size:26px;direction:rtl;}
+.small{font-size:13px;opacity:.7;}
+</style>
+</head>
+<body>
+
+<header>📖 Ammar Reminds</header>
+<div class="container">
+
+<div class="card">
+<h3>👤 Login</h3>
+<input id="username" placeholder="Enter your name">
+<button onclick="login()">Login</button>
+<p id="userStatus" class="small"></p>
+</div>
+
+<div class="card">
+<h3>🔍 Search Ayah</h3>
+<input id="search" placeholder="Search keyword e.g mercy">
+<button onclick="searchAyah()">Search</button>
+<div id="searchResult"></div>
+</div>
+
+<div class="card">
+<h3>📖 Qur’an Reader</h3>
+<select id="surah"></select>
+<select id="juz"></select>
+<button onclick="loadSurah()">Load</button>
+<div class="arabic" id="arabic"></div>
+<div id="eng"></div>
+<audio id="audio" controls></audio>
+</div>
+
+<div class="card">
+<h3>🧠 Tafsir Ibn Kathir</h3>
+<button onclick="loadTafsir()">Load Tafsir for current ayah</button>
+<div id="tafsir"></div>
+</div>
+
+<div class="card">
+<h3>🕋 Qibla Finder</h3>
+<button onclick="getQibla()">Find Qibla Direction</button>
+<div id="qibla"></div>
+</div>
+
+<div class="card">
+<h3>🕰 Prayer Times</h3>
+<button onclick="getPrayer()">Get Prayer Times</button>
+<div id="prayer"></div>
+</div>
+
+<div class="card">
+<h3>📌 Bookmarks</h3>
+<button onclick="saveBookmark()">Save Current Ayah</button>
+<ul id="bookmarks"></ul>
+</div>
+
+</div>
+
+<script>
+let user = localStorage.getItem("user");
+if(user) document.getElementById("userStatus").textContent = "Logged in as "+user;
+
+function login(){
+ let name=document.getElementById("username").value;
+ localStorage.setItem("user",name);
+ document.getElementById("userStatus").textContent="Logged in as "+name;
+}
+
+fetch("https://api.alquran.cloud/v1/surah").then(r=>r.json()).then(d=>{
+ let s=document.getElementById("surah");
+ d.data.forEach(x=>{
+  let o=document.createElement("option");
+  o.value=x.number;o.textContent=x.number+". "+x.englishName;
+  s.appendChild(o);
+ });
+});
+
+for(let i=1;i<=30;i++){
+ let o=document.createElement("option");
+ o.value=i;o.textContent="Juz "+i;
+ document.getElementById("juz").appendChild(o);
+}
+
+function loadSurah(){
+ let n=document.getElementById("surah").value;
+ fetch(`https://api.alquran.cloud/v1/surah/${n}/ar.alafasy`)
+ .then(r=>r.json()).then(d=>{
+  let a=d.data.ayahs[0];
+  window.currentAyah=a.number;
+  document.getElementById("arabic").textContent=a.text;
+  document.getElementById("audio").src=a.audio;
+ });
+ fetch(`https://api.alquran.cloud/v1/surah/${n}/en.asad`)
+ .then(r=>r.json()).then(d=>{
+  document.getElementById("eng").textContent=d.data.ayahs[0].text;
+ });
+}
+
+function searchAyah(){
+ let q=document.getElementById("search").value;
+ fetch(`https://api.alquran.cloud/v1/search/${q}/all/en`)
+ .then(r=>r.json()).then(d=>{
+  let res=d.data.matches[0];
+  document.getElementById("searchResult").innerText=
+   "Surah "+res.surah.number+": "+res.text;
+ });
+}
+
+function loadTafsir(){
+ fetch(`https://api.alquran.cloud/v1/ayah/${currentAyah}/editions/en.ibnkathir`)
+ .then(r=>r.json()).then(d=>{
+  document.getElementById("tafsir").textContent=d.data[0].text;
+ });
+}
+
+function getPrayer(){
+ navigator.geolocation.getCurrentPosition(pos=>{
+  let lat=pos.coords.latitude;
+  let lon=pos.coords.longitude;
+  fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=2`)
+  .then(r=>r.json()).then(d=>{
+   let t=d.data.timings;
+   document.getElementById("prayer").innerHTML=
+   `Fajr: ${t.Fajr}<br>Dhuhr: ${t.Dhuhr}<br>Asr: ${t.Asr}<br>Maghrib: ${t.Maghrib}<br>Isha: ${t.Isha}`;
+  });
+ });
+}
+
+function getQibla(){
+ navigator.geolocation.getCurrentPosition(pos=>{
+  let lat=pos.coords.latitude;
+  let lon=pos.coords.longitude;
+  fetch(`https://api.aladhan.com/v1/qibla/${lat}/${lon}`)
+  .then(r=>r.json()).then(d=>{
+   document.getElementById("qibla").innerText="Qibla direction: "+d.data.direction+"°";
+  });
+ });
+}
+
+function saveBookmark(){
+ let arr=JSON.parse(localStorage.getItem("bm")||"[]");
+ arr.push("Ayah "+currentAyah);
+ localStorage.setItem("bm",JSON.stringify(arr));
+ renderBm();
+}
+function renderBm(){
+ let arr=JSON.parse(localStorage.getItem("bm")||"[]");
+ let ul=document.getElementById("bookmarks"); ul.innerHTML="";
+ arr.forEach(x=>{let li=document.createElement("li");li.textContent=x;ul.appendChild(li);});
+}
+renderBm();
+</script>
+</body>
+</html>
