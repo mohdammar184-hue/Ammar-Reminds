@@ -31,7 +31,41 @@
     <div class="title">🌙 Ayah of the Day</div>
     <div class="ayah-ar" id="ayahArabic">Loading...</div>
     <div class="ayah-en" id="ayahEnglish"></div>
-  </div>  <!-- Prayer Times -->  <div class="card">
+ <!-- Qibla Finder -->
+<div class="card">
+  <h2>🕋 Qibla Finder</h2>
+
+  <p id="qiblaStatus">Move your phone to detect direction...</p>
+
+  <div style="display:flex; justify-content:center; margin:15px 0;">
+    <div style="width:200px; height:200px; border:3px solid #1e88e5; border-radius:50%; position:relative;">
+      
+      <!-- Arrow -->
+      <div id="needle" style="
+        width:4px;
+        height:90px;
+        background:#1e88e5;
+        position:absolute;
+        top:10px;
+        left:50%;
+        transform-origin:bottom center;
+        transform:rotate(0deg);
+      "></div>
+
+      <!-- Center dot -->
+      <div style="
+        width:10px;
+        height:10px;
+        background:#1e88e5;
+        border-radius:50%;
+        position:absolute;
+        top:95px;
+        left:95px;
+      "></div>
+    </div>
+  </div>
+<p style="font-size:14px; opacity:0.7;">Allow motion & location permission for accuracy</p>
+</div> </div>  <!-- Prayer Times -->  <div class="card">
     <div class="title">🕰 Today’s Prayer Times</div>
     <div id="locationStatus" style="font-size:13px;color:#6b7280">Getting your location...</div>
     <div class="prayer-grid" id="prayerTimes"></div>
