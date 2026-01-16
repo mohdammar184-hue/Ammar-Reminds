@@ -194,5 +194,37 @@ function searchAyah() {
       });
     });
 }
-</script></body>
+</script><script>
+const makkahLat = 21.4225;
+const makkahLng = 39.8262;
+
+function getQiblaDirection(lat, lng) {
+  const φ1 = lat * Math.PI / 180;
+  const φ2 = makkahLat * Math.PI / 180;
+  const Δλ = (makkahLng - lng) * Math.PI / 180;
+
+  const y = Math.sin(Δλ);
+  const x = Math.cos(φ1)*Math.tan(φ2) - Math.sin(φ1)*Math.cos(Δλ);
+  let θ = Math.atan2(y, x);
+  return (θ * 180 / Math.PI + 360) % 360;
+}
+
+navigator.geolocation.getCurrentPosition(pos => {
+  const lat = pos.coords.latitude;
+  const lng = pos.coords.longitude;
+
+  const qibla = getQiblaDirection(lat, lng);
+  document.getElementById("qiblaStatus").innerText =
+    "Qibla detected. Rotate your phone.";
+
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener("deviceorientationabsolute", e => {
+      const heading = e.alpha;
+      const rotation = qibla - heading;
+      document.getElementById("needle").style.transform =
+        `rotate(${rotation}deg)`;
+    });
+  }
+});
+    </script></body>
 </html>
